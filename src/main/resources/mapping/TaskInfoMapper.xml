@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.minsheng.reinsurance.dao.TaskInfoDao">
+    <resultMap type="com.minsheng.reinsurance.bean.entity.TaskInfo" id="taskResultMap">
+        <id property="id" column="id"/>
+        <result property="id" column="id"/>
+        <result property="jobName" column="jobName"/>
+        <result property="jobGroup" column="jobGroup"/>
+        <result property="jobDescription" column="jobDescription"/>
+        <result property="jobStatus" column="jobStatus"/>
+        <result property="cronExpression" column="cronExpression"/>
+        <result property="createTime" column="createTime"/>
+        <result property="milliSeconds" column="milliSeconds"/>
+        <result property="repeatCount" column="repeatCount"/>
+        <result property="startDate" column="startDate"/>
+        <result property="endDate" column="endDate"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+    <sql id="sql1">
+      `id`, `id`, `jobName`, `jobGroup`, `jobDescription`, `jobStatus`, `cronExpression`,
+       `createTime`, `milliSeconds`, `repeatCount`, `repeatCount`, `startDate`,`endDate`,`del_flag`
+    </sql>
+
+    <select id="findBy" resultMap="taskResultMap" parameterType="HashMap">
+        SELECT
+        <include refid="sql1"/>
+        FROM `task_info`
+        <trim prefixOverrides="and" prefix="WHERE">
+            <if test="id != null">
+                and `id` = #{id}
+            </if>
+            <if test="jobStatus != null">
+                and `jobStatus` = #{jobStatus}
+            </if>
+            <if test="jobName != null">
+                and `jobName` = #{jobName}
+            </if>
+            <if test="jobDescription != null">
+                and `jobDescription` = #{jobDescription}
+            </if>
+            <!--<if test="isSys != null">-->
+                <!--and `is_sys` = #{isSys}-->
+            <!--</if>-->
+            <!--<if test="useable != null">-->
+                <!--and `useable` = #{useable}-->
+            <!--</if>-->
+            <if test="delFlag != null">
+                and `del_flag` = #{delFlag}
+            </if>
+        </trim>
+        <choose>
+            <when test="orderBy == null">
+                ORDER BY id DESC
+            </when>
+            <otherwise>
+                ORDER BY ${orderBy}
+            </otherwise>
+        </choose>
+    </select>
+    <!--<select id="countBy" resultType="Integer" parameterType="HashMap">-->
+        <!--SELECT COUNT(1)-->
+        <!--FROM `sys_role`-->
+        <!--<trim prefixOverrides="and" prefix="WHERE">-->
+            <!--<if test="id != null">-->
+                <!--and `id` = #{id}-->
+            <!--</if>-->
+            <!--<if test="officeId != null">-->
+                <!--and `office_id` = #{officeId}-->
+            <!--</if>-->
+            <!--<if test="name != null">-->
+                <!--and `name` = #{name}-->
+            <!--</if>-->
+            <!--<if test="enname != null">-->
+                <!--and `enname` = #{enname}-->
+            <!--</if>-->
+            <!--<if test="roleType != null">-->
+                <!--and `role_type` = #{roleType}-->
+            <!--</if>-->
+            <!--<if test="isSys != null">-->
+                <!--and `is_sys` = #{isSys}-->
+            <!--</if>-->
+            <!--<if test="useable != null">-->
+                <!--and `useable` = #{useable}-->
+            <!--</if>-->
+            <!--<if test="delFlag != null">-->
+                <!--and `del_flag` = #{delFlag}-->
+            <!--</if>-->
+        <!--</trim>-->
+    <!--</select>-->
+    <select id="getEntityById" parameterType="Integer" resultMap="taskResultMap">
+        SELECT
+        <include refid="sql1"/>
+        FROM `task_info`
+        WHERE `id` = #{id}
+    </select>
+    <insert id="insert" parameterType="com.minsheng.reinsurance.bean.entity.TaskInfo" useGeneratedKeys="true"
+            keyColumn="id">
+        INSERT INTO `task_info` (
+        <trim suffix=")" suffixOverrides=",">
+            <!--<if test="id != null">`id`,</if>-->
+            <if test="jobName != null">`jobName`,</if>
+            <if test="jobGroup != null">`jobGroup`,</if>
+            <if test="jobDescription != null">`jobDescription`,</if>
+            <if test="jobStatus != null">`jobStatus`,</if>
+            <if test="cronExpression != null">`cronExpression`,</if>
+            <if test="createTime != null">`createTime`,</if>
+            <if test="milliSeconds != null">`milliSeconds`,</if>
+            <if test="repeatCount != null">`repeatCount`,</if>
+            <if test="startDate != null">`startDate`,</if>
+            <if test="endDate != null">`endDate`,</if>
+            <if test="delFlag != null">`del_flag`,</if>
+        </trim>
+        values (
+        <trim suffix=")" suffixOverrides=",">
+            <!--<if test="id != null">#{id},</if>-->
+            <if test="jobName != null">#{jobName},</if>
+            <if test="jobGroup != null">#{jobGroup},</if>
+            <if test="jobDescription != null">#{jobDescription},</if>
+            <if test="jobStatus != null">#{jobStatus},</if>
+            <if test="cronExpression != null">#{cronExpression},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="milliSeconds != null">#{milliSeconds},</if>
+            <if test="repeatCount != null">#{repeatCount},</if>
+            <if test="startDate != null">#{startDate},</if>
+            <if test="endDate != null">#{endDate},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+        </trim>
+        <selectKey resultType="Integer" keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    </insert>
+    <update id="update" parameterType="com.minsheng.reinsurance.bean.entity.TaskInfo">
+        UPDATE `task_info`
+        <set>
+            <if test="id != null">`id` = #{id},</if>
+            <if test="jobName != null">`jobName` = #{jobName},</if>
+            <if test="jobGroup != null">`jobGroup` = #{jobGroup},</if>
+            <if test="jobDescription != null">`jobDescription` = #{jobDescription},</if>
+            <if test="jobStatus != null">`jobStatus` = #{jobStatus},</if>
+            <if test="cronExpression != null">`cronExpression` = #{cronExpression},</if>
+            <if test="createTime != null">`createTime` = #{createTime},</if>
+            <if test="milliSeconds != null">`milliSeconds` = #{milliSeconds},</if>
+            <if test="repeatCount != null">`repeatCount` = #{repeatCount},</if>
+            <if test="startDate != null">`startDate` = #{startDate},</if>
+            <if test="endDate != null">`endDate` = #{endDate},</if>
+            <if test="delFlag != null">`del_flag` = #{delFlag},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    <delete id="delete" parameterType="Integer">
+        DELETE FROM `task_info`
+        WHERE `id` = #{id}
+    </delete>
+</mapper>
+
+
+

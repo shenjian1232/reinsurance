@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:replace="/fragments/commonHeader :: head"></head>
+<body>
+<script th:src="@{/js/sys/common.js}" type="text/javascript"></script>
+<script th:src="@{/js/sys/manage/task.js}" type="text/javascript"></script>
+<script th:inline="javascript">
+    var menuTree = [[${menuTree}]];
+</script>
+<section class="content">
+    <div id="app">
+        <!-- form search -->
+        <el-form :inline="true" :model="searchForm" ref="searchForm" @submit.native.prevent="submitForm"
+                 shiro:hasPermission="sysAdministrative:task:search">
+            <el-form-item label="任务方法名" prop="jobName">
+                <el-input v-model="searchForm.jobName" style="width: 200px"
+                          size="small" placeholder="任务方法名">
+                </el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" size="small" icon="search" @click="submitForm">查询</el-button>
+            </el-form-item>
+        </el-form>
+        <!-- authority -->
+        <el-button-group>
+            <el-button type="primary" size="small" @click="handleAdd"
+                       shiro:hasPermission="sysAdministrative:task:add">
+                <a class="fa fa-plus" style="color: white;"></a>新增
+            </el-button>
+            <el-button type="primary" size="small" @click="handleRefresh">
+                <a class="fa fa-refresh" style="color: white;"></a> 刷新
+            </el-button>
+            <!--<el-button type="primary" size="small" @click="runAllTask">-->
+                <!--<a class="fa fa-refresh" style="color: white;"></a> 启动服务-->
+            <!--</el-button>-->
+            <el-button size="small" type="warning" @click="runAllTask()"
+                       shiro:hasPermission="sysAdministrative:task:add">
+                <a class="fa fa-edit" style="color: white;"></a> 启动服务
+            </el-button>
+            <!--<el-button type="primary" size="small" @click="handleReset">-->
+                <!--<a class="fa fa-refresh" style="color: white;"></a> 重置-->
+            <!--</el-button>-->
+            <!--<el-button type="primary" size="small" @click="handleBatchDel"-->
+                       <!--shiro:hasPermission="sysAdministrative:role:batchDel">-->
+                <!--<a class="fa fa-trash" style="color: white;"></a> 批量删除-->
+            <!--</el-button>-->
+        </el-button-group>
+        <br>
+        <br>
+        <!-- talbe -->
+        <el-table ref="myTable" :data="tableData" style="width: 100%;" stripe border
+                  @selection-change="handleSelectionChange">
+            <!--<el-table-column type="selection"></el-table-column>-->
+            <!--<el-table-column type="index" width="80"></el-table-column>-->
+            <el-table-column prop="id" label="任务编码" width="100"></el-table-column>
+            <el-table-column prop="jobDescription" label="任务描述" width="150"></el-table-column>
+            <el-table-column prop="jobName" label="任务名称" width="150"></el-table-column>
+            <el-table-column prop="jobStatus" label="任务状态" width="100">
+                <template scope="scope">
+                    <el-tag type="success" close-transition="false" v-if="scope.row.jobStatus == 1">
+                        <a class="fa fa-unlock"></a> 启动
+                    </el-tag>
+                    <el-tag type="danger" close-transition="false" v-if="scope.row.jobStatus == 0">
+                        <a class="fa fa-lock"></a> 停止
+                    </el-tag>
+                </template>
+            </el-table-column>
+            <el-table-column prop="cronExpression" label="执行间隔" width="150"></el-table-column>
+            <!--<el-table-column prop="enname" label="角色英文名称" width="150"></el-table-column>-->
+            <!--&lt;!&ndash;<el-table-column prop="menuIds" label="权限" width="200"></el-table-column>&ndash;&gt;-->
+            <!--<el-table-column prop="remarks" label="备注" width="200"></el-table-column>-->
+            <el-table-column prop="startDate" label="开始时间" width="200">
+                <template scope="scope">
+                    <el-icon name="time"></el-icon>
+                    <span style="margin-left: 10px">{{ scope.row.startDate }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column prop="endDate" label="结束时间" width="200">
+                <template scope="scope">
+                    <el-icon name="time"></el-icon>
+                    <span style="margin-left: 10px">{{ scope.row.endDate }}</span>
+                </template>
+            </el-table-column>
+
+            <el-table-column label="操作" fixed="right" width="240px">
+                <template scope="scope">
+                    <el-button-group>
+                        <!--<el-button size="small" type="success" @click="handleDetail(scope.$index, scope.row)">
+                            <a class="fa fa-search" style="color: white;"></a> 查看
+                        </el-button>-->
+                        <el-button size="small" type="warning" @click="handleChangetStatus(scope.$index, scope.row)"
+                                   shiro:hasPermission="sysAdministrative:task:changeStatus">
+                            <a class="fa fa-edit" style="color: white;"></a> 修改状态
+                        </el-button>
+                        <el-button size="small" type="primary" @click="handleEdit(scope.$index, scope.row)"
+                                   shiro:hasPermission="sysAdministrative:role:edit">
+                            <a class="fa fa-edit" style="color: white;"></a> 编辑
+                        </el-button>
+                        <el-button size="small" type="danger" @click="handleDelete(scope.$index, scope.row)"
+                                   shiro:hasPermission="sysAdministrative:role:del">
+                            <a class="fa fa-trash" style="color: white;"></a> 删除
+                        </el-button>
+                    </el-button-group>
+                </template>
+            </el-table-column>
+        </el-table>
+        <!-- pagination -->
+        <div align="right">
+            <pagination v-bind:currentpage="currentPage"
+                        v-bind:pagesize="pageSize"
+                        v-bind:totalcount="totalCount"
+                        v-bind:handlesizechange="handleSizeChange"
+                        v-bind:handlecurrentchange="handleCurrentChange">
+            </pagination>
+        </div>
+
+        <!--新增界面-->
+        <el-dialog title="新增" v-model="addFormVisible" :close-on-click-modal="false"  @close="resetAdd">
+                    <el-form :model="taskForm" :rules="taskFormRules" ref="taskForm" label-width="100px">
+                        <el-form-item label="任务名称" prop="jobName">
+                            <el-input size="small" v-model="taskForm.jobName" placeholder="任务名称"></el-input>
+                        </el-form-item>
+                        <el-form-item label="任务描述" prop="jobDescription">
+                            <el-input size="small" type="textarea" v-model="taskForm.jobDescription"
+                                      placeholder="请输入任务描述"></el-input>
+                        </el-form-item>
+                        <el-form-item label="状态">
+                            <el-radio-group v-model="taskForm.jobStatus">
+                                <el-radio class="radio" :label="1">启动</el-radio>
+                                <el-radio class="radio" :label="0">停止</el-radio>
+                            </el-radio-group>
+                        </el-form-item>
+                        <el-form-item label="开始时间" prop="startDate">
+                            <el-input size="small" type="textarea" v-model="taskForm.startDate"
+                                      placeholder="开始时间"></el-input>
+                        </el-form-item>
+                        <el-form-item label="结束时间" prop="endDate">
+                            <el-input size="small" type="textarea" v-model="taskForm.endDate"
+                                      placeholder="结束时间"></el-input>
+                        </el-form-item>
+                        <el-form-item label="定时执行" prop="cronExpression">
+                            <el-input size="small" type="textarea" v-model="taskForm.cronExpression"
+                                      placeholder="定时执行"></el-input>
+                        </el-form-item>
+                        <!--<el-form-item label="执行间隔" prop="milliSeconds">-->
+                            <!--<el-input size="small" type="textarea" v-model="taskForm.milliSeconds"-->
+                                      <!--placeholder="执行间隔"></el-input>-->
+                        <!--</el-form-item>-->
+                        <!--<el-form-item label="执行次数" prop="repeatCount">-->
+                            <!--<el-input size="small" type="textarea" v-model="taskForm.repeatCount"-->
+                                      <!--placeholder="执行次数"></el-input>-->
+                        <!--</el-form-item>-->
+                    </el-form>
+
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="cancelAdd">取消</el-button>
+                <el-button type="primary" @click="addSubmit">保存</el-button>
+            </div>
+        </el-dialog>
+
+        <!--编辑界面-->
+        <el-dialog title="编辑" v-model="editFormVisible" :close-on-click-modal="false" >
+            <el-form :model="taskForm" :rules="taskFormRules" ref="taskForm" label-width="100px">
+                <el-form-item label="任务名称" prop="jobName">
+                    <el-input size="small" v-model="taskForm.jobName" readonly placeholder="任务名称"></el-input>
+                </el-form-item>
+                <el-form-item label="任务描述" prop="jobDescription">
+                    <el-input size="small" type="textarea" v-model="taskForm.jobDescription"
+                              placeholder="请输入任务描述"></el-input>
+                </el-form-item>
+                <el-form-item label="状态">
+                    <el-radio-group v-model="taskForm.jobStatus">
+                        <el-radio class="radio" :label="1">启动</el-radio>
+                        <el-radio class="radio" :label="0">停止</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="开始时间" prop="startDate">
+                    <el-input size="small" type="textarea" v-model="taskForm.startDate"
+                              placeholder="开始时间"></el-input>
+                </el-form-item>
+                <el-form-item label="结束时间" prop="endDate">
+                    <el-input size="small" type="textarea" v-model="taskForm.endDate"
+                              placeholder="结束时间"></el-input>
+                </el-form-item>
+                <el-form-item label="定时执行" prop="cronExpression">
+                    <el-input size="small" type="textarea" v-model="taskForm.cronExpression"
+                              placeholder="定时执行"></el-input>
+                </el-form-item>
+                <!--<el-form-item label="执行间隔" prop="milliSeconds">-->
+                    <!--<el-input size="small" type="textarea" v-model="taskForm.milliSeconds"-->
+                              <!--placeholder="执行间隔"></el-input>-->
+                <!--</el-form-item>-->
+                <!--<el-form-item label="执行次数" prop="repeatCount">-->
+                    <!--<el-input size="small" type="textarea" v-model="taskForm.repeatCount"-->
+                              <!--placeholder="执行次数"></el-input>-->
+                <!--</el-form-item>-->
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="cancelEdit">取消</el-button>
+                <el-button type="primary" @click="editSubmit">更新</el-button>
+            </div>
+        </el-dialog>
+
+    </div>
+</section>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.minsheng.reinsurance.dao.ExcelDataDao">
+    <resultMap type="com.minsheng.reinsurance.bean.entity.ExcelDataDto" id="ExcelResultMap">
+        <id property="id" column="id"/>
+        <result property="officeId" column="office_id"/>
+        <result property="loginName" column="login_name"/>
+        <result property="name" column="name"/>
+    </resultMap>
+
+    <sql id="sql1">
+        `id`, `office_id`, `login_name`, `name`
+    </sql>
+
+    <select id="findBy" resultMap="ExcelResultMap" parameterType="HashMap">
+        SELECT
+        <include refid="sql1"/>
+        FROM `sys_exceldata`
+        <trim prefixOverrides="and" prefix="WHERE">
+            <if test="id != null">
+                and `id` = #{id}
+            </if>
+
+            <if test="officeId != null">
+                and `office_id` = #{officeId}
+            </if>
+            <if test="loginName != null">
+                and `login_name` = #{loginName}
+            </if>
+
+            <if test="name != null">
+                and `name` = #{name}
+            </if>
+            <if test="userMsg != null">
+                and (instr(`login_name`, #{userMsg})>0 OR instr(`name`, #{userMsg})>0 )
+            </if>
+        </trim>
+        <choose>
+            <when test="orderBy == null">
+                ORDER BY id DESC
+            </when>
+            <otherwise>
+                ORDER BY ${orderBy}
+            </otherwise>
+        </choose>
+    </select>
+    <select id="countBy" resultType="Integer" parameterType="HashMap">
+        SELECT COUNT(1)
+        FROM `sys_exceldata`
+        <trim prefixOverrides="and" prefix="WHERE">
+            <if test="id != null">
+                and `id` = #{id}
+            </if>
+            <if test="officeId != null">
+                and `office_id` = #{officeId}
+            </if>
+            <if test="loginName != null">
+                and `login_name` = #{loginName}
+            </if>
+            <if test="name != null">
+                and `name` = #{name}
+            </if>
+        </trim>
+    </select>
+    <select id="getEntityById" parameterType="Integer" resultMap="ExcelResultMap">
+        SELECT
+        <include refid="sql1"/>
+        FROM `sys_exceldata`
+        WHERE `id` = #{id}
+    </select>
+    <insert id="insert" parameterType="com.minsheng.reinsurance.bean.entity.ExcelDataDto" useGeneratedKeys="true" keyColumn="id">
+        INSERT INTO `sys_exceldata` (
+        <trim suffix=")" suffixOverrides=",">
+            <if test="office_id != null">`office_id`,</if>
+            <if test="loginName != null">`login_name`,</if>
+            <if test="name != null">`name`,</if>
+        </trim>
+        values (
+        <trim suffix=")" suffixOverrides=",">
+            <if test="office_id != null">#{office_id},</if>
+            <if test="loginName != null">#{loginName},</if>
+            <if test="name != null">#{name},</if>
+        </trim>
+        <selectKey resultType="Integer" keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    </insert>
+    <update id="update" parameterType="com.minsheng.reinsurance.bean.entity.ExcelDataDto">
+        UPDATE `sys_exceldata`
+        <set>
+            <if test="officeId != null">`office_id` = #{officeId},</if>
+            <if test="loginName != null">`login_name` = #{loginName},</if>
+            <if test="name != null">`name` = #{name},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    <delete id="delete" parameterType="Integer">
+        DELETE FROM `sys_exceldata`
+        WHERE `id` = #{id}
+    </delete>
+</mapper>
+
+
+

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:replace="/fragments/commonHeader :: head"></head>
+<body page-type="user">
+<script th:src="@{/js/xlsx.core.min.js}"type="text/javascript" ></script>
+<script th:src="@{/js/Export2Excel.js}"type="text/javascript" ></script>
+<script th:src="@{/js/FileSaver.js}"type="text/javascript" ></script>
+<script th:src="@{/js/sys/common.js}" type="text/javascript"></script>
+<script th:src="@{/js/sys/manage/ExcelData.js}" type="text/javascript"></script>
+<section class="content">
+    <div id="app">
+        <!-- form search -->
+        <el-form :inline="true" :model="searchForm" ref="searchForm" @submit.native.prevent="submitForm"
+                 shiro:hasPermission="sysExcel:data:search">
+            <el-form-item label="账号/真实姓名" prop="userMsg">
+                <el-input v-model="searchForm.userMsg" style="width: 200px"
+                          size="small" placeholder="请输入账号/真实姓名">
+                </el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" size="small" icon="search" @click="submitForm">查询</el-button>
+            </el-form-item>
+        </el-form>
+        <!-- authority -->
+        <el-button-group>
+            <el-button type="primary" size="small" @click="handleAdd" shiro:hasPermission="sysExcel:data:add">
+                <a class="fa fa-plus" style="color: white;"></a>新增
+            </el-button>
+            <el-button type="primary" size="small" @click="handleRefresh">
+                <a class="fa fa-refresh" style="color: white;"></a> 刷新
+            </el-button>
+            <el-button type="primary" size="small" @click="handleupload">
+                <a class="fa fa-upload" style="color: white;"></a> 导入</el-button>
+            <el-button type="primary" size="small" @click="handledownload">
+                <a class="fa fa-download" style="color: white;"></a> 导出
+            </el-button>
+        </el-button-group>
+        <br>
+        <br>
+        <!-- talbe -->
+        <el-table ref="myTable" :data="tableData" style="width: 100%;" stripe border
+                  @selection-change="handleSelectionChange">
+            <el-table-column type="selection"></el-table-column>
+            <el-table-column prop="id" label="ID" width="150"></el-table-column>
+            <el-table-column prop="officeName" label="归属机构" width="230"></el-table-column>
+            <el-table-column prop="loginName" label="账号" width="240"></el-table-column>
+            <el-table-column prop="name" label="真实姓名" width="240"></el-table-column>
+            <el-table-column label="操作" fixed="right" width="240px">
+                <template scope="scope">
+                    <el-button-group>
+                        <el-button size="small" type="primary" @click="handleEdit(scope.$index, scope.row)"
+                                   shiro:hasPermission="sysExcel:data:edit">
+                            <a class="fa fa-edit" style="color: white;"></a> 修改
+                        </el-button>
+                        <el-button size="small" type="danger" @click="handleDelete(scope.$index, scope.row)"
+                                   shiro:hasPermission="sysExcel:data:del">
+                            <a class="fa fa-trash" style="color: white;"></a> 删除
+                        </el-button>
+                    </el-button-group>
+                </template>
+            </el-table-column>
+        </el-table>
+        <!-- pagination -->
+        <div align="right">
+            <pagination v-bind:currentpage="currentPage"
+                        v-bind:pagesize="pageSize"
+                        v-bind:totalcount="totalCount"
+                        v-bind:handlesizechange="handleSizeChange"
+                        v-bind:handlecurrentchange="handleCurrentChange">
+            </pagination>
+        </div>
+
+        <!--新增界面-->
+        <el-dialog title="新增" v-model="addFormVisible" :close-on-click-modal="false">
+            <el-form :model="exceldataForm" :rules="exceldataFormRules" ref="exceldataForm" label-width="100px">
+                <el-form-item label="真实姓名" prop="name">
+                    <el-input size="small" v-model="exceldataForm.name" placeholder="请输入真实姓名"></el-input>
+                </el-form-item>
+                <el-form-item label="登录账号" prop="loginName">
+                    <el-input size="small" v-model="exceldataForm.loginName" placeholder="请输入登录账号"></el-input>
+                </el-form-item>
+                <el-form-item label="所属机构" prop="officeId">
+                    <el-input class="hidden" v-model="exceldataForm.officeId"></el-input>
+                    <el-input size="small" readonly v-model="exceldataForm.officeName"
+                              placeholder="请选择所属机构"></el-input>
+                    <el-button size="small" type="primary" icon="search" @click="selectOffice">选择</el-button>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="cancelAdd">取消</el-button>
+                <el-button type="primary" @click="addSubmit">保存</el-button>
+            </div>
+        </el-dialog>
+
+        <!--编辑界面-->
+        <el-dialog title="编辑" v-model="editFormVisible" :close-on-click-modal="false">
+            <el-form :model="exceldataForm" :rules="exceldataFormRules" ref="exceldataForm" label-width="100px">
+                <el-form-item label="真实姓名" prop="name">
+                    <el-input size="small" v-model="exceldataForm.name" placeholder="请输入真实姓名"></el-input>
+                    <el-input class="hidden" v-model="exceldataForm.id"></el-input>
+                </el-form-item>
+                <el-form-item label="登录账号" prop="loginName">
+                    <el-input size="small" v-model="exceldataForm.loginName" placeholder="请输入登录账号"></el-input>
+                </el-form-item>
+                <el-form-item label="所属机构" prop="officeId">
+                    <el-input class="hidden" v-model="exceldataForm.officeId"></el-input>
+                    <el-input size="small" readonly v-model="exceldataForm.officeName"
+                              placeholder="请选择所属机构"></el-input>
+                    <el-button size="small" type="primary" icon="search" @click="selectOffice">选择</el-button>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="cancelEdit">取消</el-button>
+                <el-button type="primary" @click="editSubmit">修改</el-button>
+            </div>
+        </el-dialog>
+
+        <!--上传界面-->
+        <el-dialog title="上传" v-model="uploadFormVisible" :close-on-click-modal="false">
+            <el-upload
+                    class="upload-demo"
+
+                    drag
+                    action="#"
+                    multiple
+                    :before-upload="beforeUpload">
+                <i class="el-icon-upload"></i>
+                <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em>
+                </div>
+            </el-upload>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="handleExport" size="small" type="primary">导出上传模板</el-button>
+                <el-button @click="cancelUpload" size="small" type="primary">取消</el-button>
+            </div>
+        </el-dialog>
+    </div>
+</section>
+</body>
+</html>

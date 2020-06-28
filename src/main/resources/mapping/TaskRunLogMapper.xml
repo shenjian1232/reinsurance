@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.minsheng.reinsurance.dao.TaskRunLogDao">
+    <resultMap type="com.minsheng.reinsurance.bean.entity.TaskRunLog" id="taskRunLogResultMap">
+        <id property="id" column="id"/>
+        <result property="id" column="id"/>
+        <result property="serialno" column="serialno"/>
+        <result property="taskId" column="taskId"/>
+        <result property="jobName" column="jobName"/>
+        <result property="startTime" column="startTime"/>
+        <result property="finishTime" column="finishTime"/>
+        <result property="executeState" column="executeState"/>
+        <result property="executeResult" column="executeResult"/>
+    </resultMap>
+
+    <sql id="sql1">
+      `id`, `id`, `jobName`, `serialno`, `taskId`, `startTime`, `finishTime`,
+       `executeState`, `executeResult`
+    </sql>
+
+    <select id="findBy" resultMap="taskRunLogResultMap" parameterType="HashMap">
+        SELECT
+        <include refid="sql1"/>
+        FROM `task_run_log`
+        <trim prefixOverrides="and" prefix="WHERE">
+            <if test="id != null">
+                and `id` = #{id}
+            </if>
+            <if test="serialno != serialno">
+                and `serialno` = #{serialno}
+            </if>
+            <!--<if test="enname != null">-->
+            <!--and `enname` = #{enname}-->
+            <!--</if>-->
+            <!--<if test="roleType != null">-->
+            <!--and `role_type` = #{roleType}-->
+            <!--</if>-->
+            <!--<if test="isSys != null">-->
+            <!--and `is_sys` = #{isSys}-->
+            <!--</if>-->
+            <!--<if test="useable != null">-->
+            <!--and `useable` = #{useable}-->
+            <!--</if>-->
+        </trim>
+        <choose>
+            <when test="orderBy == null">
+                ORDER BY id DESC
+            </when>
+            <otherwise>
+                ORDER BY ${orderBy}
+            </otherwise>
+        </choose>
+    </select>
+    <!--<select id="countBy" resultType="Integer" parameterType="HashMap">-->
+    <!--SELECT COUNT(1)-->
+    <!--FROM `sys_role`-->
+    <!--<trim prefixOverrides="and" prefix="WHERE">-->
+    <!--<if test="id != null">-->
+    <!--and `id` = #{id}-->
+    <!--</if>-->
+    <!--<if test="officeId != null">-->
+    <!--and `office_id` = #{officeId}-->
+    <!--</if>-->
+    <!--<if test="name != null">-->
+    <!--and `name` = #{name}-->
+    <!--</if>-->
+    <!--<if test="enname != null">-->
+    <!--and `enname` = #{enname}-->
+    <!--</if>-->
+    <!--<if test="roleType != null">-->
+    <!--and `role_type` = #{roleType}-->
+    <!--</if>-->
+    <!--<if test="isSys != null">-->
+    <!--and `is_sys` = #{isSys}-->
+    <!--</if>-->
+    <!--<if test="useable != null">-->
+    <!--and `useable` = #{useable}-->
+    <!--</if>-->
+    <!--<if test="delFlag != null">-->
+    <!--and `del_flag` = #{delFlag}-->
+    <!--</if>-->
+    <!--</trim>-->
+    <!--</select>-->
+    <select id="getEntityById" parameterType="Integer" resultMap="taskRunLogResultMap">
+        SELECT
+        <include refid="sql1"/>
+        FROM `task_run_log`
+        WHERE `id` = #{id}
+    </select>
+    <insert id="insert" parameterType="com.minsheng.reinsurance.bean.entity.TaskRunLog" useGeneratedKeys="true"
+            keyColumn="id">
+        INSERT INTO `task_run_log` (
+        <trim suffix=")" suffixOverrides=",">
+            <!--<if test="id != null">`id`,</if>-->
+            <if test="jobName != null">`jobName`,</if>
+            <if test="serialno != null">`serialno`,</if>
+            <if test="taskId != null">`taskId`,</if>
+            <if test="startTime != null">`startTime`,</if>
+            <if test="finishTime != null">`finishTime`,</if>
+            <if test="executeState != null">`executeState`,</if>
+            <if test="executeResult != null">`executeResult`,</if>
+        </trim>
+        values (
+        <trim suffix=")" suffixOverrides=",">
+            <!--<if test="id != null">#{id},</if>-->
+            <if test="jobName != null">#{jobName},</if>
+            <if test="serialno != null">#{serialno},</if>
+            <if test="taskId != null">#{taskId},</if>
+            <if test="startTime != null">#{startTime},</if>
+            <if test="finishTime != null">#{finishTime},</if>
+            <if test="executeState != null">#{executeState},</if>
+            <if test="executeResult != null">#{executeResult},</if>
+        </trim>
+        <selectKey resultType="Integer" keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    </insert>
+    <update id="update" parameterType="com.minsheng.reinsurance.bean.entity.TaskRunLog">
+        UPDATE `task_run_log`
+        <set>
+            <if test="id != null">`id` = #{id},</if>
+            <if test="jobName != null">`jobName` = #{jobName},</if>
+            <if test="serialno != null">`serialno` = #{serialno},</if>
+            <if test="taskId != null">`taskId` = #{taskId},</if>
+            <if test="startTime != null">`startTime` = #{startTime},</if>
+            <if test="finishTime != null">`finishTime` = #{finishTime},</if>
+            <if test="executeState != null">`executeState` = #{executeState},</if>
+            <if test="executeResult != null">`executeResult` = #{executeResult},</if>
+        </set>
+        WHERE serialno = #{serialno}
+    </update>
+    <!--<delete id="delete" parameterType="Integer">-->
+        <!--DELETE FROM `task_info`-->
+        <!--WHERE `id` = #{id}-->
+    <!--</delete>-->
+</mapper>
+
+
+
